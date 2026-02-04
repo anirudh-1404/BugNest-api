@@ -1,6 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import { connectdb } from "./config/db.js";
+import userRoutes from "./routes/user.routes.js";
 
 dotenv.config();
 
@@ -15,6 +17,10 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use("/api/auth", userRoutes);
+
+connectdb();
 
 app.listen(process.env.PORT, () => {
   console.log(`App listening on port ${process.env.PORT}`);
