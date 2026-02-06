@@ -1,4 +1,7 @@
 import { User } from "../modals/user.schema.js";
+import genToken from "../utils/authToken.js";
+import { hashedPassword } from "../utils/hashPassword.js";
+import bcrypt from "bcrypt";
 
 export const registerController = async (req, res, next) => {
   try {
@@ -17,10 +20,19 @@ export const registerController = async (req, res, next) => {
       });
     }
 
+    const hashPass = await hashedPassword(password);
     const user = await User.create({
       name,
       email,
-      password,
+      password: hashPass,
+    });
+
+    const token = await genToken(user._id);
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000 * 3,
     });
 
     return res.status(200).json({
@@ -53,6 +65,20 @@ export const loginController = async (req, res, next) => {
       });
     }
 
+    const isMatch = await bcrypt.compare(password, isEmailExists.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        message: "Invalid email or password!",
+      });
+    }
+
+    const token = await genToken(isEmailExists._id);
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000 * 3,
+    });
     return res.status(200).json({
       message: "Login suceessfull!",
       id: isEmailExists._id,

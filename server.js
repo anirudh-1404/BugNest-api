@@ -1,8 +1,10 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { connectdb } from "./config/db.js";
 import userRoutes from "./routes/user.routes.js";
+import issueRoutes from "./routes/issue.routes.js";
 
 dotenv.config();
 
@@ -17,8 +19,10 @@ app.use(
     credentials: true,
   }),
 );
+app.use(cookieParser());
 
 app.use("/api/auth", userRoutes);
+app.use("/api", issueRoutes);
 
 connectdb();
 
